@@ -1,7 +1,0 @@
-I am planning to create a model which takes as an input either an image, a video, or live streaming. Using the latest YOLO, it detects the faces first of all in the image and then using a CNN network (appropriate one) detects the emotion on the faces, like all sorts of emotions:
-- happy
-- sad
-- angry
-- frustrated
-- annoyed
-and all the classes. I want that kind of system. If this requires fine-tuning any of the models, either the CNN model, which can be ResNet or EfficientNet and for detection YOLO, then do that also.

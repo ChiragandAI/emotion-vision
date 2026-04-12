@@ -41,6 +41,14 @@ data/
 # Claude session files
 .claude/
 
+# Personal / planning files
+agents.md
+instructions.txt
+INTERVIEW_PREP.md
+DEPLOYMENT_PLAN.md
+FINE_TUNING.md
+DEPLOYMENT.md
+
 # Terraform
 infra/terraform/.terraform/
 infra/terraform/*.tfstate
