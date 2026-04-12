@@ -1,29 +1,83 @@
-# YOLO Face Emotion Recognition
+# Emotion Vision
 
-Baseline scaffold for a face detection plus emotion classification system that supports images, videos, and live streams.
+A production-grade facial emotion recognition system built by [Chirag Dahiya](https://github.com/ChiragandAI).
 
-## What is included
+Detects faces in images, videos, and live webcam streams, then classifies the emotion of every detected face in real time. Built as a full-stack portfolio project demonstrating end-to-end ML engineering — from fine-tuning to deployed product.
 
-- YOLO-oriented face detector wrapper
-- PyTorch emotion classifier baseline
-- end-to-end inference pipeline
-- temporal smoothing for video and stream mode
-- starter configs for training and inference
-- CLI scripts for image, video, webcam, and training workflows
+**Live demo:** coming soon
 
-## Suggested setup
+---
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+## What it does
+
+- Detects all faces in an image, video, or webcam stream using a YOLO-based face detector
+- Classifies the emotion of each detected face: happy, sad, angry, surprised, fearful, disgusted, neutral
+- Overlays bounding boxes, emotion labels, and confidence scores on the output
+- Applies temporal smoothing on video and stream input to prevent flickering predictions
+- Serves results through a React frontend and FastAPI backend
+
+---
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React + Vite |
+| Backend | FastAPI (Python) |
+| Face detection | YOLO11 |
+| Emotion classification | ResNet18 (baseline) → EfficientNet-B2 (fine-tuned) |
+| Inference modes | Mock / Local / External provider |
+| Containerization | Docker |
+| CI/CD | GitHub Actions |
+| Infrastructure | GCP Cloud Run + Terraform |
+| Experiment tracking | Weights & Biases |
+| Frontend hosting | Vercel |
+
+---
+
+## ML Pipeline
+
+```
+Input (image / video / webcam)
+    │
+    ▼
+YOLO face detector
+    │  bounding boxes + confidence
+    ▼
+Face crop + padding + resize (224x224)
+    │
+    ▼
+Emotion classifier (EfficientNet-B2)
+    │  class probabilities
+    ▼
+Temporal smoothing (video/stream only)
+    │
+    ▼
+Annotated output + structured JSON response
 ```
 
-## Quick start
+---
 
-### Prototype mode
+## Fine-tuning
 
-Use this mode if you want the frontend and backend to work right now before real model weights are available.
+This project explicitly demonstrates fine-tuning, not just model consumption.
+
+- **Emotion classifier**: fine-tuned on RAF-DB and FER2013 datasets
+- **Face detector**: YOLO11 validated out of the box, fine-tuned on WiderFace if domain performance requires it
+- Training done in Kaggle and Google Colab notebooks (see `notebooks/`)
+- Baseline vs fine-tuned comparisons documented with metrics
+
+---
+
+## Local development
+
+### Prerequisites
+
+- Python 3.11
+- Node.js 20
+- Docker (optional)
+
+### Run in mock mode (no model weights needed)
 
 Backend:
 
@@ -42,44 +96,59 @@ npm install
 npm run dev
 ```
 
-The frontend will call the backend in `mock` mode and return stable demo predictions from the API.
+Open `http://localhost:5173` — the frontend connects to the backend in mock mode and returns stable demo predictions.
 
-## Docker quick start
+### Run with Docker
 
 ```bash
 docker compose up --build
 ```
 
-Then open:
+- Frontend: `http://localhost:8080`
+- Backend: `http://localhost:8000`
 
-- frontend: `http://localhost:8080`
-- backend: `http://localhost:8000`
+---
 
-### Image inference
-
-```bash
-python scripts/infer_image.py \
-  --input path/to/image.jpg \
-  --output outputs/image_result.jpg
-```
-
-### Video inference
+## CLI inference scripts
 
 ```bash
-python scripts/infer_video.py \
-  --input path/to/video.mp4 \
-  --output outputs/video_result.mp4
+# Image
+python scripts/infer_image.py --input path/to/image.jpg --output outputs/result.jpg
+
+# Video
+python scripts/infer_video.py --input path/to/video.mp4 --output outputs/result.mp4
+
+# Webcam
+python scripts/infer_stream.py --source 0
 ```
 
-### Webcam inference
+---
 
-```bash
-python scripts/infer_stream.py \
-  --source 0
+## Project structure
+
+```
+emotion-vision/
+  frontend/        React + Vite app
+  backend/         FastAPI inference API
+  src/             Core ML pipeline (detection, emotion, tracking, inference)
+  notebooks/       Fine-tuning and evaluation notebooks
+  configs/         Training and inference configuration
+  scripts/         CLI scripts for inference and training
+  infra/           Terraform infrastructure as code
+  docker/          Dockerfiles for frontend and backend
+  tests/           Unit and integration tests
 ```
 
-## Notes
+---
 
-- Detection defaults to a lightweight OpenCV face detector if YOLO weights are not available yet.
-- Emotion classification defaults to an untrained PyTorch baseline unless you provide trained weights.
-- This repo is scaffolded for fast iteration and later fine-tuning, not as a finished model release.
+## Deployment
+
+Infrastructure is defined in Terraform and deployed to GCP Cloud Run. CI/CD runs on GitHub Actions — every push triggers lint, tests, Docker build, and staging deployment. Production uses canary rollouts via Cloud Run traffic splitting.
+
+See [DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md) for the full architecture.
+
+---
+
+## Author
+
+**Chirag Dahiya** — [github.com/ChiragandAI](https://github.com/ChiragandAI)
