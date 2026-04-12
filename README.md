@@ -4,8 +4,6 @@ A production-grade facial emotion recognition system built by [Chirag Dahiya](ht
 
 Detects faces in images, videos, and live webcam streams, then classifies the emotion of every detected face in real time. Built as a full-stack portfolio project demonstrating end-to-end ML engineering — from fine-tuning to deployed product.
 
-**Live demo:** coming soon
-
 ---
 
 ## What it does
