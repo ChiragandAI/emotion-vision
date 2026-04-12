@@ -10,6 +10,7 @@ services:
       - "8000:8000"
     volumes:
       - app_outputs:/app/outputs
+      - ./models:/app/models  # Mount local model weights (not baked into image — stored in GCS in production)
 
   frontend:
     build:
