@@ -1,0 +1,7 @@
+model_name: yolo11-face
+weights_path: models/detection/yolo_face.pt
+input_size: 640
+confidence_threshold: 0.35
+iou_threshold: 0.45
+padding: 0.1
+fallback_cascade: cv2/data/haarcascade_frontalface_default.xml

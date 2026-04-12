@@ -1,0 +1,10 @@
+fastapi>=0.115
+httpx>=0.28
+python-multipart>=0.0.9
+uvicorn[standard]>=0.30
+PyYAML>=6.0
+opencv-python>=4.8
+numpy>=1.24
+torch>=2.2
+torchvision>=0.17
+ultralytics>=8.3
