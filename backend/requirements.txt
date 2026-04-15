@@ -8,3 +8,4 @@ numpy>=1.24
 torch>=2.2
 torchvision>=0.17
 ultralytics>=8.3
+google-cloud-storage>=2.18

@@ -119,8 +119,10 @@ class InferenceService:
 
     def _get_pipeline(self):
         if self._pipeline is None:
+            from app.services.model_loader import ensure_weights
             from src.utils.modeling import build_pipeline
 
+            ensure_weights(ROOT)
             self._pipeline = build_pipeline()
         return self._pipeline
 
