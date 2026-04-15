@@ -42,10 +42,10 @@ COPY configs /app/configs
 RUN mkdir -p /app/outputs/videos
 
 # Document that the app listens on port 8000 (does not actually publish it — that's done at runtime)
-EXPOSE 8000
+EXPOSE 8080
 
 # Default inference mode — can be overridden at runtime with --env INFERENCE_MODE=mock
 ENV INFERENCE_MODE=local
 
 # Start the FastAPI server on all network interfaces (0.0.0.0) so it's reachable from outside the container
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "backend"]
+CMD exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080} --app-dir backend
