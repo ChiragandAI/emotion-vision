@@ -1,0 +1,128 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_sha:
+        description: "Git SHA of the image to promote to prod (must already exist in Artifact Registry)"
+        required: true
+        type: string
+
+env:
+  PROJECT_ID: emotion-vision-493021
+  REGION: us-central1
+  SERVICE_NAME: emotion-vision-backend
+  REPO_NAME: emotion-vision
+  IMAGE_NAME: backend
+
+jobs:
+  deploy-canary:
+    name: Deploy new revision with 0% traffic
+    runs-on: ubuntu-latest
+    environment: production
+
+    permissions:
+      contents: read
+      id-token: write
+
+    outputs:
+      revision: ${{ steps.deploy.outputs.revision }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy new revision with no traffic
+        id: deploy
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ inputs.image_sha }} \
+            --region ${{ env.REGION }} \
+            --no-traffic \
+            --tag candidate
+
+          REVISION=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format='value(status.latestCreatedRevisionName)')
+          echo "revision=$REVISION" >> $GITHUB_OUTPUT
+
+  shift-5-percent:
+    name: Shift 5% traffic to canary
+    needs: deploy-canary
+    runs-on: ubuntu-latest
+    environment: production-canary-5
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Shift 5% traffic
+        run: |
+          gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --to-revisions ${{ needs.deploy-canary.outputs.revision }}=5
+
+  shift-25-percent:
+    name: Shift 25% traffic to canary
+    needs: shift-5-percent
+    runs-on: ubuntu-latest
+    environment: production-canary-25
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Shift 25% traffic
+        run: |
+          gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --to-revisions ${{ needs.deploy-canary.outputs.revision }}=25
+
+  shift-100-percent:
+    name: Promote canary to 100% traffic
+    needs: shift-25-percent
+    runs-on: ubuntu-latest
+    environment: production-full
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Shift 100% traffic
+        run: |
+          gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --to-revisions ${{ needs.deploy-canary.outputs.revision }}=100
