@@ -30,3 +30,9 @@ variable "environment" {
   type        = string
   default     = "production"
 }
+
+variable "alert_email" {
+  description = "Email address to receive Cloud Monitoring alerts (uptime, error rate, latency)"
+  type        = string
+  default     = "official.chiragdahiya@gmail.com"
+}

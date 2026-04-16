@@ -47,3 +47,11 @@ module "cloud_run" {
   environment            = var.environment
   inference_mode_version = module.secret_manager.inference_mode_version
 }
+
+module "monitoring" {
+  source       = "./modules/monitoring"
+  project_id   = var.project_id
+  service_name = "emotion-vision-backend"
+  service_host = replace(replace(module.cloud_run.service_url, "https://", ""), "/", "")
+  alert_email  = var.alert_email
+}
