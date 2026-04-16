@@ -6,24 +6,28 @@ function drawFacesOnCanvas(canvas, media, faces, color = "#d22f27") {
     return;
   }
 
-  const rect = media.getBoundingClientRect();
-  const sourceWidth = media.naturalWidth || media.videoWidth || rect.width;
-  const sourceHeight = media.naturalHeight || media.videoHeight || rect.height;
-  if (!rect.width || !rect.height || !sourceWidth || !sourceHeight) {
+  const mediaRect = media.getBoundingClientRect();
+  const sourceWidth = media.naturalWidth || media.videoWidth || mediaRect.width;
+  const sourceHeight = media.naturalHeight || media.videoHeight || mediaRect.height;
+  if (!mediaRect.width || !mediaRect.height || !sourceWidth || !sourceHeight) {
     return;
   }
 
-  canvas.width = rect.width;
-  canvas.height = rect.height;
-  canvas.style.width = `${rect.width}px`;
-  canvas.style.height = `${rect.height}px`;
+  // Canvas overlay spans the wrapper (inset: 0 in CSS). Size it to the wrapper
+  // and offset annotations by the image's position within it so they land on
+  // the rendered pixels even when object-fit: contain letterboxes the media.
+  const parent = canvas.offsetParent || canvas.parentElement || media.parentElement;
+  const parentRect = parent ? parent.getBoundingClientRect() : mediaRect;
+  canvas.width = parentRect.width;
+  canvas.height = parentRect.height;
+  canvas.style.width = `${parentRect.width}px`;
+  canvas.style.height = `${parentRect.height}px`;
 
-  // Match object-fit: contain letterboxing so annotations map onto the rendered pixels.
-  const scale = Math.min(rect.width / sourceWidth, rect.height / sourceHeight);
+  const scale = Math.min(mediaRect.width / sourceWidth, mediaRect.height / sourceHeight);
   const displayedWidth = sourceWidth * scale;
   const displayedHeight = sourceHeight * scale;
-  const offsetX = (rect.width - displayedWidth) / 2;
-  const offsetY = (rect.height - displayedHeight) / 2;
+  const offsetX = (mediaRect.left - parentRect.left) + (mediaRect.width - displayedWidth) / 2;
+  const offsetY = (mediaRect.top - parentRect.top) + (mediaRect.height - displayedHeight) / 2;
   const scaleX = scale;
   const scaleY = scale;
   const context = canvas.getContext("2d");
