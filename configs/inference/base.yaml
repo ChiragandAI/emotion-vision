@@ -1,7 +1,7 @@
 device: cpu
 render: true
 show_confidence: true
-smoothing_alpha: 0.65
+smoothing_alpha: 0.25
 uncertain_threshold: 0.45
 track_max_missing: 10
 frame_stride: 1

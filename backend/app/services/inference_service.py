@@ -69,11 +69,8 @@ class InferenceService:
             if not capture.isOpened():
                 raise ValueError("Could not open uploaded video.")
 
-            sample_frames = []
             frames_processed = 0
             frame_index = 0
-            sample_stride = 15
-            max_samples = 8
             fps = capture.get(cv2.CAP_PROP_FPS) or 24.0
             width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
             height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
@@ -103,15 +100,7 @@ class InferenceService:
                 if writer is not None:
                     writer.write(annotated)
 
-                if frame_index % sample_stride == 0 and len(sample_frames) < max_samples:
-                    sample_frames.append(
-                        {
-                            "frame_index": frame_index,
-                            "image_data_url": self._encode_frame_data_url(annotated),
-                            "faces": results,
-                        }
-                    )
-                    frames_processed += 1
+                frames_processed += 1
                 frame_index += 1
 
             capture.release()
@@ -125,7 +114,7 @@ class InferenceService:
                 "mode": self.mode,
                 "frames_processed": frames_processed,
                 "annotated_video_url": annotated_video_url,
-                "sample_frames": sample_frames,
+                "sample_frames": [],
             }
         finally:
             if os.path.exists(tmp_path):

@@ -57,3 +57,6 @@ infra/terraform/*.tfvars
 .secrets/
 infra/terraform/terraform.tfvars
 infra/terraform/.terraform/
+
+Screenshot*.png
+infra/terraform/tfplan

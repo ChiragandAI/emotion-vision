@@ -508,17 +508,17 @@ export function DemoPanel() {
             <p className="metric-value">{mode === "video" ? result.frames_processed : result.faces.length}</p>
             <p className="muted">Response mode: {result.mode}</p>
           </div>
-          <div className="result-card">
-            <p className="result-title">Predictions</p>
-            {mode === "video"
-              ? result.sample_frames.map((frame) => <VideoSampleCard key={`frame-${frame.frame_index}`} frame={frame} />)
-              : result.faces.map((face, index) => (
-                  <div key={`${face.emotion_label}-${index}`} className="face-card">
-                    <p className="prediction-label">{face.emotion_label}</p>
-                    <p className="prediction-meta">confidence {face.emotion_confidence.toFixed(2)}</p>
-                  </div>
-                ))}
-          </div>
+          {mode !== "video" ? (
+            <div className="result-card">
+              <p className="result-title">Predictions</p>
+              {result.faces.map((face, index) => (
+                <div key={`${face.emotion_label}-${index}`} className="face-card">
+                  <p className="prediction-label">{face.emotion_label}</p>
+                  <p className="prediction-meta">confidence {face.emotion_confidence.toFixed(2)}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : (
         <p className="muted">Choose a mode, then upload media or use the webcam.</p>
