@@ -18,8 +18,14 @@ function drawFacesOnCanvas(canvas, media, faces, color = "#d22f27") {
   canvas.style.width = `${rect.width}px`;
   canvas.style.height = `${rect.height}px`;
 
-  const scaleX = rect.width / sourceWidth;
-  const scaleY = rect.height / sourceHeight;
+  // Match object-fit: contain letterboxing so annotations map onto the rendered pixels.
+  const scale = Math.min(rect.width / sourceWidth, rect.height / sourceHeight);
+  const displayedWidth = sourceWidth * scale;
+  const displayedHeight = sourceHeight * scale;
+  const offsetX = (rect.width - displayedWidth) / 2;
+  const offsetY = (rect.height - displayedHeight) / 2;
+  const scaleX = scale;
+  const scaleY = scale;
   const context = canvas.getContext("2d");
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.lineWidth = 3;
@@ -29,8 +35,8 @@ function drawFacesOnCanvas(canvas, media, faces, color = "#d22f27") {
 
   faces.forEach((face) => {
     const [x1, y1, x2, y2] = face.box;
-    const left = x1 * scaleX;
-    const top = y1 * scaleY;
+    const left = x1 * scaleX + offsetX;
+    const top = y1 * scaleY + offsetY;
     const width = (x2 - x1) * scaleX;
     const height = (y2 - y1) * scaleY;
     const text = `${face.emotion_label} ${(face.emotion_confidence * 100).toFixed(0)}%`;
