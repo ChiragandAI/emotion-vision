@@ -6,50 +6,41 @@ function drawFacesOnCanvas(canvas, media, faces, color = "#d22f27") {
     return;
   }
 
-  const mediaRect = media.getBoundingClientRect();
-  const sourceWidth = media.naturalWidth || media.videoWidth || mediaRect.width;
-  const sourceHeight = media.naturalHeight || media.videoHeight || mediaRect.height;
-  if (!mediaRect.width || !mediaRect.height || !sourceWidth || !sourceHeight) {
+  const sourceWidth = media.naturalWidth || media.videoWidth;
+  const sourceHeight = media.naturalHeight || media.videoHeight;
+  if (!sourceWidth || !sourceHeight) {
     return;
   }
 
-  // Canvas overlay spans the wrapper (inset: 0 in CSS). Size it to the wrapper
-  // and offset annotations by the image's position within it so they land on
-  // the rendered pixels even when object-fit: contain letterboxes the media.
-  const parent = canvas.offsetParent || canvas.parentElement || media.parentElement;
-  const parentRect = parent ? parent.getBoundingClientRect() : mediaRect;
-  canvas.width = parentRect.width;
-  canvas.height = parentRect.height;
-  canvas.style.width = `${parentRect.width}px`;
-  canvas.style.height = `${parentRect.height}px`;
+  // Draw boxes in the media's native coordinate space. CSS (object-fit: contain
+  // on both the image and the canvas) handles scaling identically for both, so
+  // annotations always track the pixels without runtime layout math.
+  canvas.width = sourceWidth;
+  canvas.height = sourceHeight;
+  canvas.style.width = "";
+  canvas.style.height = "";
 
-  const scale = Math.min(mediaRect.width / sourceWidth, mediaRect.height / sourceHeight);
-  const displayedWidth = sourceWidth * scale;
-  const displayedHeight = sourceHeight * scale;
-  const offsetX = (mediaRect.left - parentRect.left) + (mediaRect.width - displayedWidth) / 2;
-  const offsetY = (mediaRect.top - parentRect.top) + (mediaRect.height - displayedHeight) / 2;
-  const scaleX = scale;
-  const scaleY = scale;
+  const lineWidth = Math.max(2, Math.round(sourceWidth * 0.004));
+  const fontSize = Math.max(14, Math.round(sourceWidth * 0.025));
   const context = canvas.getContext("2d");
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.lineWidth = 3;
+  context.lineWidth = lineWidth;
   context.strokeStyle = color;
   context.fillStyle = color;
-  context.font = "16px sans-serif";
+  context.font = `${fontSize}px sans-serif`;
 
   faces.forEach((face) => {
     const [x1, y1, x2, y2] = face.box;
-    const left = x1 * scaleX + offsetX;
-    const top = y1 * scaleY + offsetY;
-    const width = (x2 - x1) * scaleX;
-    const height = (y2 - y1) * scaleY;
+    const width = x2 - x1;
+    const height = y2 - y1;
     const text = `${face.emotion_label} ${(face.emotion_confidence * 100).toFixed(0)}%`;
     const textWidth = context.measureText(text).width;
+    const labelHeight = fontSize + 8;
 
-    context.strokeRect(left, top, width, height);
-    context.fillRect(left, Math.max(0, top - 28), textWidth + 14, 22);
+    context.strokeRect(x1, y1, width, height);
+    context.fillRect(x1, Math.max(0, y1 - labelHeight), textWidth + 14, labelHeight);
     context.fillStyle = "#ffffff";
-    context.fillText(text, left + 7, Math.max(16, top - 12));
+    context.fillText(text, x1 + 7, Math.max(fontSize, y1 - 8));
     context.fillStyle = color;
   });
 }
