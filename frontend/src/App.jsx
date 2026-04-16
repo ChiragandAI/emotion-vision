@@ -1,6 +1,9 @@
-import { useState } from "react";
-import { DemoPanel } from "./components/DemoPanel";
+import { lazy, Suspense, useState } from "react";
 import { useHealthCheck } from "./hooks/useHealthCheck";
+
+const DemoPanel = lazy(() =>
+  import("./components/DemoPanel").then((m) => ({ default: m.DemoPanel }))
+);
 
 export default function App() {
   useHealthCheck();
@@ -51,7 +54,9 @@ export default function App() {
       </header>
 
       <main className="page-single">
-        <DemoPanel />
+        <Suspense fallback={<p className="muted">Loading demo...</p>}>
+          <DemoPanel />
+        </Suspense>
       </main>
     </div>
   );

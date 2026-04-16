@@ -73,7 +73,7 @@ function AnnotatedImage({ src, faces, alt }) {
 
   return (
     <div className="annotated-preview">
-      <img ref={imageRef} className="image-preview" src={src} alt={alt} />
+      <img ref={imageRef} className="image-preview" src={src} alt={alt} loading="lazy" decoding="async" />
       <canvas ref={canvasRef} className="media-overlay" />
     </div>
   );
@@ -481,7 +481,7 @@ export function DemoPanel() {
           {mode === "image" ? (
             <AnnotatedImage src={previewUrl} faces={result?.faces || []} alt="Selected preview" />
           ) : (
-            <video className="image-preview" src={previewUrl} controls />
+            <video className="image-preview" src={previewUrl} controls preload="metadata" />
           )}
         </div>
       ) : null}
@@ -494,7 +494,7 @@ export function DemoPanel() {
               Download video
             </a>
           </div>
-          <video className="image-preview" src={`${apiBaseUrl}${result.annotated_video_url}`} controls />
+          <video className="image-preview" src={`${apiBaseUrl}${result.annotated_video_url}`} controls preload="metadata" />
         </div>
       ) : null}
 
