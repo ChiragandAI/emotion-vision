@@ -209,6 +209,9 @@ export function DemoPanel() {
     setResult(null);
     setError("");
     updatePreview("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
     if (mode !== "webcam") {
       updateCapturedFrame("");
     }
@@ -447,7 +450,10 @@ export function DemoPanel() {
                 console.log("[upload] change fired, files:", e.target.files);
                 handleChange(e);
               }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.target.value = "";
+              }}
               style={{ display: "block", marginTop: 10, fontSize: 14, cursor: "pointer", position: "relative", zIndex: 10 }}
             />
             <small>{fileName}</small>
