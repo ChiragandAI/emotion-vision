@@ -18,7 +18,7 @@ resource "google_cloud_run_v2_service" "backend" {
         value_source {
           secret_key_ref {
             secret  = "INFERENCE_MODE"
-            version = "latest"
+            version = reverse(split("/", var.inference_mode_version))[0]
           }
         }
       }
@@ -26,6 +26,30 @@ resource "google_cloud_run_v2_service" "backend" {
       env {
         name  = "MODEL_BUCKET"
         value = var.model_bucket_name
+      }
+
+      env {
+        name  = "ENVIRONMENT"
+        value = var.environment
+      }
+
+      startup_probe {
+        http_get {
+          path = "/health/ready"
+        }
+        initial_delay_seconds = 10
+        period_seconds        = 10
+        timeout_seconds       = 5
+        failure_threshold     = 30
+      }
+
+      liveness_probe {
+        http_get {
+          path = "/health"
+        }
+        period_seconds    = 30
+        timeout_seconds   = 5
+        failure_threshold = 3
       }
     }
 

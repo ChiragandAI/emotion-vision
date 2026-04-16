@@ -20,6 +20,7 @@ class Settings:
     app_name: str = "emotion-vision-api"
     project_root: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
     allowed_origins: list[str] = field(default_factory=default_allowed_origins)
+    environment: str = os.getenv("ENVIRONMENT", "dev")
     inference_mode: str = os.getenv("INFERENCE_MODE", "mock")
     provider_name: str = os.getenv("INFERENCE_PROVIDER", "none")
     provider_api_url: str = os.getenv("INFERENCE_PROVIDER_URL", "")
@@ -30,3 +31,9 @@ class Settings:
 
 
 settings = Settings()
+
+if settings.environment == "production" and settings.inference_mode == "mock":
+    raise RuntimeError(
+        "Refusing to start: INFERENCE_MODE=mock in production. "
+        "Set INFERENCE_MODE to 'local' or 'provider' in Secret Manager via Terraform."
+    )

@@ -33,14 +33,17 @@ module "gcs" {
 }
 
 module "secret_manager" {
-  source     = "./modules/secret-manager"
-  project_id = var.project_id
+  source         = "./modules/secret-manager"
+  project_id     = var.project_id
+  inference_mode = var.inference_mode
 }
 
 module "cloud_run" {
-  source            = "./modules/cloud-run"
-  project_id        = var.project_id
-  region            = var.region
-  image_tag         = var.image_tag
-  model_bucket_name = module.gcs.bucket_name
+  source                 = "./modules/cloud-run"
+  project_id             = var.project_id
+  region                 = var.region
+  image_tag              = var.image_tag
+  model_bucket_name      = module.gcs.bucket_name
+  environment            = var.environment
+  inference_mode_version = module.secret_manager.inference_mode_version
 }

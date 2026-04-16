@@ -4,6 +4,10 @@ resource "google_storage_bucket" "models" {
   force_destroy = false
 
   uniform_bucket_level_access = true
+
+  versioning {
+    enabled = true
+  }
 }
 
 resource "google_storage_bucket" "outputs" {

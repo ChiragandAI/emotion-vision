@@ -1,12 +1,22 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.api.routes import router as api_router
+from app.api.routes import router as api_router, service
 from app.core.config import settings
-from pathlib import Path
 
-app = FastAPI(title=settings.app_name, version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    service.warmup()
+    _app.state.ready = True
+    yield
+
+
+app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,6 +30,13 @@ app.add_middleware(
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": settings.app_name}
+
+
+@app.get("/health/ready")
+def ready() -> dict[str, str]:
+    if not getattr(app.state, "ready", False):
+        raise HTTPException(status_code=503, detail="not ready")
+    return {"status": "ready", "mode": service.mode, "environment": settings.environment}
 
 
 generated_dir = Path(settings.project_root) / "outputs"

@@ -17,3 +17,13 @@ variable "model_bucket_name" {
   description = "GCS bucket name where model weights are stored"
   type        = string
 }
+
+variable "environment" {
+  description = "Deployment environment"
+  type        = string
+}
+
+variable "inference_mode_version" {
+  description = "Pinned secret version resource name for INFERENCE_MODE"
+  type        = string
+}

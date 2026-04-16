@@ -120,6 +120,7 @@ export function DemoPanel() {
   const streamRef = useRef(null);
   const liveLoopRef = useRef(null);
   const liveTimeoutRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     return () => stopCamera();
@@ -432,11 +433,27 @@ export function DemoPanel() {
               {mode === "image" ? `Limit: up to ${imageLimitMb} MB per image.` : `Limit: up to ${videoLimitMb} MB per video.`}
             </p>
           </div>
-          <label className="upload-box">
-            <input type="file" accept={mode === "image" ? "image/*" : "video/*"} onChange={handleChange} />
+          <div
+            className="upload-box"
+            onClick={() => {
+              console.log("[upload] box clicked");
+              fileInputRef.current?.click();
+            }}
+          >
             <span>{mode === "image" ? "Select image" : "Select video"}</span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={mode === "image" ? "image/*" : "video/*"}
+              onChange={(e) => {
+                console.log("[upload] change fired, files:", e.target.files);
+                handleChange(e);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ display: "block", marginTop: 10, fontSize: 14, cursor: "pointer", position: "relative", zIndex: 10 }}
+            />
             <small>{fileName}</small>
-          </label>
+          </div>
           <button className="submit-button" type="button" onClick={handleSubmit} disabled={!selectedFile || loading}>
             <span className="submit-button-edge" />
             <span className="submit-button-text">{loading ? "Processing..." : `Submit ${mode}`}</span>

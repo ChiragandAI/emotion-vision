@@ -13,3 +13,20 @@ variable "image_tag" {
   description = "Docker image tag to deploy to Cloud Run (e.g. sha-abc1234)"
   type        = string
 }
+
+variable "inference_mode" {
+  description = "Inference mode (mock|local|provider). Production must be 'local' or 'provider'."
+  type        = string
+  default     = "local"
+
+  validation {
+    condition     = contains(["mock", "local", "provider"], var.inference_mode)
+    error_message = "inference_mode must be one of: mock, local, provider."
+  }
+}
+
+variable "environment" {
+  description = "Deployment environment (production|staging|dev). Backend refuses to boot with mock mode in production."
+  type        = string
+  default     = "production"
+}

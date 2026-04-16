@@ -32,6 +32,13 @@ class InferenceService:
         self._video_output_dir.mkdir(parents=True, exist_ok=True)
         self._generated_video_ttl_seconds = settings.generated_video_ttl_seconds
 
+    def warmup(self) -> None:
+        """Eagerly load weights and run one inference so readiness reflects real capability."""
+        if self.mode == "local":
+            pipeline = self._get_pipeline()
+            dummy = np.zeros((64, 64, 3), dtype=np.uint8)
+            pipeline.predict_frame(dummy, use_tracking=False)
+
     def infer_image_bytes(self, content: bytes, filename: str) -> dict:
         self._cleanup_generated_videos()
         if self.mode == "provider":

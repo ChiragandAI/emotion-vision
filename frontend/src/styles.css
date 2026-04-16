@@ -420,7 +420,29 @@ body {
 }
 
 .upload-box input {
-  display: none;
+  display: block;
+  margin-top: 10px;
+  cursor: pointer;
+  color: transparent;
+  width: auto;
+}
+
+.upload-box input::-webkit-file-upload-button,
+.upload-box input::file-selector-button {
+  margin-right: 12px;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--google-blue), var(--meta-blue));
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.upload-box input::-webkit-file-upload-button:hover,
+.upload-box input::file-selector-button:hover {
+  filter: brightness(1.05);
 }
 
 .result-card {
@@ -718,4 +740,50 @@ body {
     top: 16px;
     left: 16px;
   }
+}
+
+/* Performance overrides: flatten cards, remove card animations and blurs */
+.panel,
+.panel-block,
+.result-card,
+.face-card,
+.video-sample-card,
+.use-case-card {
+  animation: none !important;
+  transition: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+  color: #1f2937 !important;
+}
+
+.result-card .prediction-meta,
+.result-card .result-title,
+.result-card .prediction-label {
+  color: #1f2937 !important;
+}
+
+.panel:hover,
+.panel-block:hover,
+.face-card:hover,
+.use-case-card:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.primary-button,
+.secondary-button,
+.chip-button {
+  animation: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.primary-button:hover,
+.secondary-button:hover,
+.chip-button:hover {
+  transform: none !important;
+  box-shadow: none !important;
 }
