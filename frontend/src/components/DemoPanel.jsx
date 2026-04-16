@@ -109,6 +109,7 @@ export function DemoPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [progress, setProgress] = useState(null);
   const [capturedFrameUrl, setCapturedFrameUrl] = useState("");
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraLoading, setCameraLoading] = useState(false);
@@ -248,14 +249,19 @@ export function DemoPanel() {
     setLoading(true);
     setError("");
     setResult(null);
+    setProgress(mode === "video" ? { status: "queued", processed: 0, total: 0 } : null);
 
     try {
-      const data = mode === "image" ? await inferImage(selectedFile) : await inferVideo(selectedFile);
+      const data =
+        mode === "image"
+          ? await inferImage(selectedFile)
+          : await inferVideo(selectedFile, (update) => setProgress(update));
       setResult(data);
     } catch (err) {
       setError(err.message || "Could not run inference.");
     } finally {
       setLoading(false);
+      setProgress(null);
     }
   }
 
@@ -353,7 +359,7 @@ export function DemoPanel() {
     }
 
     try {
-      const data = await inferImage(frameFile);
+      const data = await inferImage(frameFile, { applyBias: true });
       setResult(data);
       drawLiveOverlay(data.faces);
       setCameraMessage(silent ? "Live webcam active" : "Latest frame analyzed");
@@ -499,7 +505,27 @@ export function DemoPanel() {
         </div>
       ) : null}
 
-      {loading ? <p className="muted">Running inference...</p> : null}
+      {loading ? (
+        <div className="inference-status">
+          <span className="spinner" aria-hidden="true" />
+          <span className="muted">
+            {mode === "video" && progress
+              ? progress.status === "encoding"
+                ? "Encoding output video..."
+                : progress.total > 0
+                  ? `Processing frames ${progress.processed}/${progress.total}`
+                  : "Starting video job..."
+              : "Running inference..."}
+          </span>
+          {mode === "video" && progress && progress.total > 0 ? (
+            <progress
+              className="inference-progress"
+              max={progress.total}
+              value={Math.min(progress.processed, progress.total)}
+            />
+          ) : null}
+        </div>
+      ) : null}
       {error ? <p className="error-text">{error}</p> : null}
 
       {result ? (

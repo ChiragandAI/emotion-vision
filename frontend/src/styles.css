@@ -802,3 +802,36 @@ body {
   transform: none !important;
   box-shadow: none !important;
 }
+
+.inference-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(120, 120, 120, 0.25);
+  border-top-color: #d22f27;
+  border-radius: 50%;
+  animation: spinner-rotate 0.9s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spinner-rotate {
+  to { transform: rotate(360deg); }
+}
+
+.inference-progress {
+  flex: 1 1 220px;
+  min-width: 180px;
+  height: 10px;
+  appearance: none;
+}
+
+.inference-progress::-webkit-progress-bar { background: rgba(120,120,120,0.18); border-radius: 6px; }
+.inference-progress::-webkit-progress-value { background: #d22f27; border-radius: 6px; transition: width 0.2s ease; }
+.inference-progress::-moz-progress-bar { background: #d22f27; border-radius: 6px; }

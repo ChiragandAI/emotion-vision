@@ -34,6 +34,10 @@ class VideoInferenceResponse(BaseModel):
     sample_frames: list[VideoFramePrediction]
 
 
+class VideoJobResponse(BaseModel):
+    job_id: str
+
+
 class ProjectInfo(BaseModel):
     name: str
     summary: str

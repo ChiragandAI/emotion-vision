@@ -35,7 +35,7 @@ class EmotionPipeline:
         self.uncertain_threshold = uncertain_threshold
         self.tracker = SimpleTracker(alpha=smoothing_alpha, max_missing=track_max_missing)
 
-    def predict_frame(self, frame: np.ndarray, use_tracking: bool = False) -> List[FaceResult]:
+    def predict_frame(self, frame: np.ndarray, use_tracking: bool = False, apply_bias: bool = True) -> List[FaceResult]:
         detections = self.detector.detect(frame)
         crops: List[np.ndarray] = []
         kept_detections = []
@@ -46,7 +46,7 @@ class EmotionPipeline:
             crops.append(face)
             kept_detections.append(detection)
 
-        predictions = self.classifier.predict_batch(crops)
+        predictions = self.classifier.predict_batch(crops, apply_bias=apply_bias)
 
         raw_results: List[FaceResult] = []
         boxes: List[tuple[int, int, int, int]] = []

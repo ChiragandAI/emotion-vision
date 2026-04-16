@@ -4,6 +4,7 @@ import base64
 import os
 import shutil
 import subprocess
+import threading
 from pathlib import Path
 import sys
 import tempfile
@@ -33,6 +34,8 @@ class InferenceService:
         self._video_output_dir = ROOT / "outputs" / "videos"
         self._video_output_dir.mkdir(parents=True, exist_ok=True)
         self._generated_video_ttl_seconds = settings.generated_video_ttl_seconds
+        self._jobs: dict[str, dict] = {}
+        self._jobs_lock = threading.Lock()
 
     def warmup(self) -> None:
         """Eagerly load weights and run one inference so readiness reflects real capability."""
@@ -41,7 +44,7 @@ class InferenceService:
             dummy = np.zeros((64, 64, 3), dtype=np.uint8)
             pipeline.predict_frame(dummy, use_tracking=False)
 
-    def infer_image_bytes(self, content: bytes, filename: str) -> dict:
+    def infer_image_bytes(self, content: bytes, filename: str, apply_bias: bool = False) -> dict:
         self._cleanup_generated_videos()
         if self.mode == "provider":
             return self.provider.infer_image_bytes(content, filename)
@@ -51,15 +54,43 @@ class InferenceService:
             return self._mock_infer_image(frame, filename)
 
         pipeline = self._get_pipeline()
-        results = pipeline.predict_frame(frame, use_tracking=False)
+        results = pipeline.predict_frame(frame, use_tracking=False, apply_bias=apply_bias)
         return {
             "filename": filename,
             "mode": self.mode,
             "faces": pipeline.frame_to_dict(results),
         }
 
-    def infer_video_bytes(self, content: bytes, filename: str) -> dict:
+    def start_video_job(self, content: bytes, filename: str) -> str:
         self._cleanup_generated_videos()
+        job_id = uuid4().hex
+        with self._jobs_lock:
+            self._jobs[job_id] = {
+                "status": "queued",
+                "processed": 0,
+                "total": 0,
+                "annotated_video_url": None,
+                "filename": filename,
+                "mode": self.mode,
+                "error": None,
+            }
+        thread = threading.Thread(target=self._run_video_job, args=(job_id, content, filename), daemon=True)
+        thread.start()
+        return job_id
+
+    def get_job(self, job_id: str) -> dict | None:
+        with self._jobs_lock:
+            job = self._jobs.get(job_id)
+            return dict(job) if job else None
+
+    def _update_job(self, job_id: str, **fields) -> None:
+        with self._jobs_lock:
+            job = self._jobs.get(job_id)
+            if job is None:
+                return
+            job.update(fields)
+
+    def _run_video_job(self, job_id: str, content: bytes, filename: str) -> None:
         with tempfile.NamedTemporaryFile(delete=False, suffix=Path(filename).suffix or ".mp4") as tmp:
             tmp.write(content)
             tmp_path = tmp.name
@@ -69,56 +100,52 @@ class InferenceService:
             if not capture.isOpened():
                 raise ValueError("Could not open uploaded video.")
 
-            frames_processed = 0
-            frame_index = 0
+            total = int(capture.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
             fps = capture.get(cv2.CAP_PROP_FPS) or 24.0
             width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
             height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
             output_path = self._video_output_dir / f"{Path(filename).stem}-{uuid4().hex[:8]}.mp4"
             raw_path = output_path.with_suffix(".raw.mp4")
             writer = None
-
             if width > 0 and height > 0:
-                writer = cv2.VideoWriter(
-                    str(raw_path),
-                    cv2.VideoWriter_fourcc(*"mp4v"),
-                    fps,
-                    (width, height),
-                )
+                writer = cv2.VideoWriter(str(raw_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
                 if not writer.isOpened():
                     writer.release()
                     writer = None
 
+            self._update_job(job_id, status="processing", total=total)
             stride = max(1, int(getattr(self._pipeline, "frame_stride", 1)) if self._pipeline else 1)
             last_results: list[dict] = []
+            frame_index = 0
             while True:
                 ok, frame = capture.read()
                 if not ok:
                     break
-
                 if frame_index % stride == 0:
                     last_results = self._predict_faces_for_frame(frame, filename, use_tracking=True)
-                    frames_processed += 1
                 annotated = self._annotate_frame(frame, last_results)
-
                 if writer is not None:
                     writer.write(annotated)
-
                 frame_index += 1
+                if frame_index % 5 == 0:
+                    self._update_job(job_id, processed=frame_index)
 
             capture.release()
             if writer is not None:
                 writer.release()
 
+            self._update_job(job_id, status="encoding", processed=frame_index)
             self._transcode_to_h264(raw_path, output_path)
             annotated_video_url = f"/outputs/videos/{output_path.name}" if output_path.exists() else None
-            return {
-                "filename": filename,
-                "mode": self.mode,
-                "frames_processed": frames_processed,
-                "annotated_video_url": annotated_video_url,
-                "sample_frames": [],
-            }
+            self._update_job(
+                job_id,
+                status="done",
+                processed=frame_index,
+                total=max(total, frame_index),
+                annotated_video_url=annotated_video_url,
+            )
+        except Exception as exc:
+            self._update_job(job_id, status="error", error=str(exc))
         finally:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)

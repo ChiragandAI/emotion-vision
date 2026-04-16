@@ -20,9 +20,10 @@ export async function getDemoInfo() {
   return response.json();
 }
 
-export async function inferImage(file) {
+export async function inferImage(file, { applyBias = false } = {}) {
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("apply_bias", applyBias ? "true" : "false");
   const response = await fetch(`${API_BASE_URL}/api/v1/infer/image`, {
     method: "POST",
     body: formData
@@ -34,16 +35,48 @@ export async function inferImage(file) {
   return response.json();
 }
 
-export async function inferVideo(file) {
+export async function inferVideo(file, onProgress) {
   const formData = new FormData();
   formData.append("file", file);
-  const response = await fetch(`${API_BASE_URL}/api/v1/infer/video`, {
+  const startResponse = await fetch(`${API_BASE_URL}/api/v1/infer/video`, {
     method: "POST",
     body: formData
   });
-  if (!response.ok) {
-    const detail = await response.text();
+  if (!startResponse.ok) {
+    const detail = await startResponse.text();
     throw new Error(detail || "Video inference failed");
   }
-  return response.json();
+  const { job_id: jobId } = await startResponse.json();
+
+  return new Promise((resolve, reject) => {
+    const source = new EventSource(`${API_BASE_URL}/api/v1/infer/video/${jobId}/events`);
+    source.onmessage = (event) => {
+      let data;
+      try {
+        data = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+      if (typeof onProgress === "function") {
+        onProgress(data);
+      }
+      if (data.status === "done") {
+        source.close();
+        resolve({
+          filename: data.filename,
+          mode: data.mode,
+          frames_processed: data.processed,
+          annotated_video_url: data.annotated_video_url,
+          sample_frames: []
+        });
+      } else if (data.status === "error") {
+        source.close();
+        reject(new Error(data.error || "Video processing failed"));
+      }
+    };
+    source.onerror = () => {
+      source.close();
+      reject(new Error("Lost connection to progress stream"));
+    };
+  });
 }
