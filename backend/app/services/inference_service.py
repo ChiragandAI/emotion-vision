@@ -79,12 +79,17 @@ class InferenceService:
             writer = None
 
             if width > 0 and height > 0:
-                writer = cv2.VideoWriter(
-                    str(output_path),
-                    cv2.VideoWriter_fourcc(*"mp4v"),
-                    fps,
-                    (width, height),
-                )
+                for codec in ("avc1", "H264", "mp4v"):
+                    writer = cv2.VideoWriter(
+                        str(output_path),
+                        cv2.VideoWriter_fourcc(*codec),
+                        fps,
+                        (width, height),
+                    )
+                    if writer.isOpened():
+                        break
+                    writer.release()
+                    writer = None
 
             while True:
                 ok, frame = capture.read()
