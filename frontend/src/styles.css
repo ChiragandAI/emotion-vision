@@ -100,6 +100,116 @@ body {
   cursor: pointer;
 }
 
+.side-menu-about {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #334155;
+}
+
+.side-menu-about code {
+  background: rgba(26, 115, 232, 0.08);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.side-menu-link {
+  display: inline-block;
+  margin-bottom: 22px;
+  padding: 8px 14px;
+  border: 1px solid rgba(26, 115, 232, 0.35);
+  border-radius: 999px;
+  background: rgba(26, 115, 232, 0.06);
+  color: var(--google-blue);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.side-menu-link:hover {
+  background: rgba(26, 115, 232, 0.14);
+}
+
+.side-menu-section {
+  margin: 4px 0 12px;
+}
+
+.hero-socials {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  display: flex;
+  gap: 10px;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  text-decoration: none;
+  transition: transform 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.social-link:hover {
+  color: var(--google-blue);
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.hero {
+  position: relative;
+}
+
+.diagram-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.diagram-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+}
+
+.diagram-content {
+  position: relative;
+  max-width: min(1040px, 96vw);
+  max-height: 92vh;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.35);
+  overflow: auto;
+}
+
+.diagram-content img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.diagram-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+}
+
 .side-menu-backdrop {
   position: fixed;
   inset: 0;

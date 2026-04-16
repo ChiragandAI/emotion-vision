@@ -48,6 +48,8 @@ INTERVIEW_PREP.md
 DEPLOYMENT_PLAN.md
 FINE_TUNING.md
 DEPLOYMENT.md
+PROJECT_WALKTHROUGH.md
+RESUME_ENTRY.md
 
 # Terraform
 infra/terraform/.terraform/
