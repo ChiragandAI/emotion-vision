@@ -55,3 +55,12 @@ module "monitoring" {
   service_host = replace(replace(module.cloud_run.service_url, "https://", ""), "/", "")
   alert_email  = var.alert_email
 }
+
+module "budget" {
+  source                   = "./modules/budget"
+  project_id               = var.project_id
+  billing_account_id       = var.billing_account_id
+  monthly_budget_amount    = var.monthly_budget_amount
+  currency_code            = var.currency_code
+  notification_channel_ids = [module.monitoring.notification_channel_id]
+}

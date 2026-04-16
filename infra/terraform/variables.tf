@@ -36,3 +36,21 @@ variable "alert_email" {
   type        = string
   default     = "official.chiragdahiya@gmail.com"
 }
+
+variable "billing_account_id" {
+  description = "GCP billing account ID without prefix, e.g. 01BC1C-0D5977-F3C59C"
+  type        = string
+  default     = "01BC1C-0D5977-F3C59C"
+}
+
+variable "monthly_budget_amount" {
+  description = "Monthly budget cap in the billing account's native currency. Email alerts fire at 50%, 90%, and 100% of this value."
+  type        = number
+  default     = 2000
+}
+
+variable "currency_code" {
+  description = "Currency code for the budget. Must match the billing account's currency (INR for this account)."
+  type        = string
+  default     = "INR"
+}

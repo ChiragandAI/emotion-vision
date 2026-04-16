@@ -3,6 +3,7 @@ resource "google_cloud_run_v2_service" "backend" {
   location = var.region
 
   template {
+    timeout = "120s"
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/emotion-vision/backend:${var.image_tag}"
 

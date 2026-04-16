@@ -1,6 +1,7 @@
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 
 from app.core.config import settings
+from app.core.rate_limit import limiter
 from app.schemas.responses import DemoInfo, HealthInfo, ImageInferenceResponse, ProjectInfo, VideoInferenceResponse
 from app.services.inference_service import InferenceService
 
@@ -33,7 +34,8 @@ def demo_info() -> DemoInfo:
 
 
 @router.post("/infer/image", response_model=ImageInferenceResponse)
-async def infer_image(file: UploadFile = File(...)) -> ImageInferenceResponse:
+@limiter.limit("30/minute")
+async def infer_image(request: Request, file: UploadFile = File(...)) -> ImageInferenceResponse:
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Expected an image upload.")
 
@@ -45,7 +47,8 @@ async def infer_image(file: UploadFile = File(...)) -> ImageInferenceResponse:
 
 
 @router.post("/infer/video", response_model=VideoInferenceResponse)
-async def infer_video(file: UploadFile = File(...)) -> VideoInferenceResponse:
+@limiter.limit("5/minute")
+async def infer_video(request: Request, file: UploadFile = File(...)) -> VideoInferenceResponse:
     if not file.content_type or not file.content_type.startswith("video/"):
         raise HTTPException(status_code=400, detail="Expected a video upload.")
 
