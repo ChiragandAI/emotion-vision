@@ -37,25 +37,32 @@ class EmotionPipeline:
 
     def predict_frame(self, frame: np.ndarray, use_tracking: bool = False) -> List[FaceResult]:
         detections = self.detector.detect(frame)
-        raw_results: List[FaceResult] = []
-        boxes: List[tuple[int, int, int, int]] = []
-        probabilities: List[list[float]] = []
-
+        crops: List[np.ndarray] = []
+        kept_detections = []
         for detection in detections:
             face = self.detector.crop_face(frame, detection)
             if face.size == 0:
                 continue
-            prediction = self.classifier.predict(face)
+            crops.append(face)
+            kept_detections.append(detection)
+
+        predictions = self.classifier.predict_batch(crops)
+
+        raw_results: List[FaceResult] = []
+        boxes: List[tuple[int, int, int, int]] = []
+        probabilities: List[list[float]] = []
+        for detection, prediction in zip(kept_detections, predictions):
             label = prediction.label if prediction.confidence >= self.uncertain_threshold else "uncertain"
-            result = FaceResult(
-                track_id=None,
-                box=detection.box,
-                detection_confidence=detection.confidence,
-                emotion_label=label,
-                emotion_confidence=prediction.confidence,
-                probabilities=prediction.probabilities,
+            raw_results.append(
+                FaceResult(
+                    track_id=None,
+                    box=detection.box,
+                    detection_confidence=detection.confidence,
+                    emotion_label=label,
+                    emotion_confidence=prediction.confidence,
+                    probabilities=prediction.probabilities,
+                )
             )
-            raw_results.append(result)
             boxes.append(detection.box)
             probabilities.append(prediction.probabilities)
 

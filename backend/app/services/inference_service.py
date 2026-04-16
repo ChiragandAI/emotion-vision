@@ -89,18 +89,21 @@ class InferenceService:
                     writer.release()
                     writer = None
 
+            stride = max(1, int(getattr(self._pipeline, "frame_stride", 1)) if self._pipeline else 1)
+            last_results: list[dict] = []
             while True:
                 ok, frame = capture.read()
                 if not ok:
                     break
 
-                results = self._predict_faces_for_frame(frame, filename, use_tracking=True)
-                annotated = self._annotate_frame(frame, results)
+                if frame_index % stride == 0:
+                    last_results = self._predict_faces_for_frame(frame, filename, use_tracking=True)
+                    frames_processed += 1
+                annotated = self._annotate_frame(frame, last_results)
 
                 if writer is not None:
                     writer.write(annotated)
 
-                frames_processed += 1
                 frame_index += 1
 
             capture.release()

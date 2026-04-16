@@ -20,6 +20,7 @@ def build_pipeline(
         confidence_threshold=detection_cfg["confidence_threshold"],
         iou_threshold=detection_cfg["iou_threshold"],
         padding=detection_cfg["padding"],
+        input_size=int(detection_cfg.get("input_size", 640)),
     )
     classifier = EmotionClassifier(
         model_name=emotion_cfg["model_name"],
@@ -29,11 +30,13 @@ def build_pipeline(
         dropout=emotion_cfg["dropout"],
         device=emotion_cfg["device"],
     )
-    return EmotionPipeline(
+    pipeline = EmotionPipeline(
         detector=detector,
         classifier=classifier,
         uncertain_threshold=inference_cfg["uncertain_threshold"],
         smoothing_alpha=inference_cfg["smoothing_alpha"],
         track_max_missing=inference_cfg["track_max_missing"],
     )
+    pipeline.frame_stride = int(inference_cfg.get("frame_stride", 1))
+    return pipeline
 

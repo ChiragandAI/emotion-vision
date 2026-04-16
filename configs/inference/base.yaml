@@ -4,5 +4,5 @@ show_confidence: true
 smoothing_alpha: 0.25
 uncertain_threshold: 0.25
 track_max_missing: 12
-frame_stride: 1
+frame_stride: 2
 

@@ -34,11 +34,13 @@ class FaceDetector:
         iou_threshold: float = 0.45,
         padding: float = 0.1,
         fallback_cascade: Optional[str] = None,
+        input_size: int = 640,
     ) -> None:
         self.weights_path = Path(weights_path)
         self.confidence_threshold = confidence_threshold
         self.iou_threshold = iou_threshold
         self.padding = padding
+        self.input_size = input_size
         self.model = self._load_yolo_model()
         cascade_path = fallback_cascade or cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
         self.cascade = cv2.CascadeClassifier(cascade_path)
@@ -62,6 +64,7 @@ class FaceDetector:
             source=image,
             conf=self.confidence_threshold,
             iou=self.iou_threshold,
+            imgsz=self.input_size,
             verbose=False,
         )
         if not results:

@@ -66,13 +66,24 @@ class EmotionClassifier:
 
     @torch.inference_mode()
     def predict(self, face_bgr: np.ndarray) -> EmotionPrediction:
-        rgb = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2RGB)
-        tensor = self.transform(rgb).unsqueeze(0).to(self.device)
-        logits = self.model(tensor)
-        probs = torch.softmax(logits, dim=1)[0].detach().cpu().numpy()
-        index = int(np.argmax(probs))
-        return EmotionPrediction(
-            label=self.class_names[index],
-            confidence=float(probs[index]),
-            probabilities=[float(p) for p in probs.tolist()],
-        )
+        return self.predict_batch([face_bgr])[0]
+
+    @torch.inference_mode()
+    def predict_batch(self, faces_bgr: list[np.ndarray]) -> list[EmotionPrediction]:
+        if not faces_bgr:
+            return []
+        tensors = [self.transform(cv2.cvtColor(f, cv2.COLOR_BGR2RGB)) for f in faces_bgr]
+        batch = torch.stack(tensors).to(self.device)
+        logits = self.model(batch)
+        probs = torch.softmax(logits, dim=1).detach().cpu().numpy()
+        results: list[EmotionPrediction] = []
+        for row in probs:
+            index = int(np.argmax(row))
+            results.append(
+                EmotionPrediction(
+                    label=self.class_names[index],
+                    confidence=float(row[index]),
+                    probabilities=[float(p) for p in row.tolist()],
+                )
+            )
+        return results
