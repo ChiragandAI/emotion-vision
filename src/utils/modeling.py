@@ -29,6 +29,7 @@ def build_pipeline(
         image_size=emotion_cfg["image_size"],
         dropout=emotion_cfg["dropout"],
         device=emotion_cfg["device"],
+        class_bias=emotion_cfg.get("class_bias"),
     )
     pipeline = EmotionPipeline(
         detector=detector,

@@ -27,9 +27,15 @@ class EmotionClassifier:
         image_size: int = 224,
         dropout: float = 0.2,
         device: str = "cpu",
+        class_bias: dict[str, float] | None = None,
     ) -> None:
         self.class_names = list(class_names)
         self.device = torch.device(device)
+        bias = torch.zeros(len(self.class_names), dtype=torch.float32)
+        for name, value in (class_bias or {}).items():
+            if name in self.class_names:
+                bias[self.class_names.index(name)] = float(value)
+        self.class_bias = bias.to(self.device)
         weights = Path(weights_path)
         self.model = self._build_model(
             model_name,
@@ -74,7 +80,7 @@ class EmotionClassifier:
             return []
         tensors = [self.transform(cv2.cvtColor(f, cv2.COLOR_BGR2RGB)) for f in faces_bgr]
         batch = torch.stack(tensors).to(self.device)
-        logits = self.model(batch)
+        logits = self.model(batch) + self.class_bias
         probs = torch.softmax(logits, dim=1).detach().cpu().numpy()
         results: list[EmotionPrediction] = []
         for row in probs:

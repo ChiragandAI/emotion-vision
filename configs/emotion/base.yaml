@@ -12,4 +12,6 @@ class_names:
   - surprised
 dropout: 0.2
 device: cpu
+class_bias:
+  disgusted: -2.0
 
