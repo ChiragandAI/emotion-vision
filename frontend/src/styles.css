@@ -603,15 +603,22 @@ body {
 
 .annotated-preview {
   position: relative;
-  display: block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-height: 520px;
+  background: #000;
 }
 
 .image-preview {
   display: block;
-  width: 100%;
+  max-width: 100%;
+  max-height: 520px;
+  width: auto;
   height: auto;
-  max-height: none;
   object-fit: contain;
+  margin: 0 auto;
 }
 
 .video-sample-card {
