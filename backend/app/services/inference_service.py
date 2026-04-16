@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import base64
 import os
+import shutil
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
@@ -76,18 +78,17 @@ class InferenceService:
             width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
             height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
             output_path = self._video_output_dir / f"{Path(filename).stem}-{uuid4().hex[:8]}.mp4"
+            raw_path = output_path.with_suffix(".raw.mp4")
             writer = None
 
             if width > 0 and height > 0:
-                for codec in ("avc1", "H264", "mp4v"):
-                    writer = cv2.VideoWriter(
-                        str(output_path),
-                        cv2.VideoWriter_fourcc(*codec),
-                        fps,
-                        (width, height),
-                    )
-                    if writer.isOpened():
-                        break
+                writer = cv2.VideoWriter(
+                    str(raw_path),
+                    cv2.VideoWriter_fourcc(*"mp4v"),
+                    fps,
+                    (width, height),
+                )
+                if not writer.isOpened():
                     writer.release()
                     writer = None
 
@@ -117,6 +118,7 @@ class InferenceService:
             if writer is not None:
                 writer.release()
 
+            self._transcode_to_h264(raw_path, output_path)
             annotated_video_url = f"/outputs/videos/{output_path.name}" if output_path.exists() else None
             return {
                 "filename": filename,
@@ -195,6 +197,30 @@ class InferenceService:
             text = f"{text} {face['emotion_confidence']:.2f}"
             cv2.putText(canvas, text, (x1, max(20, y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (30, 30, 220), 2)
         return canvas
+
+    def _transcode_to_h264(self, src: Path, dst: Path) -> None:
+        """Re-encode to browser-playable H.264 via ffmpeg; fall back to the raw file."""
+        if not src.exists():
+            return
+        ffmpeg = shutil.which("ffmpeg")
+        if ffmpeg is None:
+            shutil.move(str(src), str(dst))
+            return
+        try:
+            subprocess.run(
+                [
+                    ffmpeg, "-y", "-loglevel", "error",
+                    "-i", str(src),
+                    "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
+                    "-movflags", "+faststart",
+                    str(dst),
+                ],
+                check=True,
+            )
+            src.unlink(missing_ok=True)
+        except subprocess.CalledProcessError:
+            if src.exists() and not dst.exists():
+                shutil.move(str(src), str(dst))
 
     def _cleanup_generated_videos(self) -> None:
         if self._generated_video_ttl_seconds <= 0:
