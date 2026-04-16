@@ -1,8 +1,10 @@
 # Emotion Vision
 
-A production-grade facial emotion recognition system built by [Chirag Dahiya](https://github.com/ChiragandAI).
+A production-grade facial emotion recognition system built by [Chirag Dahiya](https://github.com/ChiragandAI) ([LinkedIn](https://www.linkedin.com/in/chiragdahiya)).
 
 Detects faces in images, videos, and live webcam streams, then classifies the emotion of every detected face in real time. Built as a full-stack portfolio project demonstrating end-to-end ML engineering — from fine-tuning to deployed product.
+
+**Live demo:** [emotion-vision.vercel.app](https://emotion-vision.vercel.app)
 
 ---
 
@@ -11,8 +13,10 @@ Detects faces in images, videos, and live webcam streams, then classifies the em
 - Detects all faces in an image, video, or webcam stream using a YOLO-based face detector
 - Classifies the emotion of each detected face: happy, sad, angry, surprised, fearful, disgusted, neutral
 - Overlays bounding boxes, emotion labels, and confidence scores on the output
-- Applies temporal smoothing on video and stream input to prevent flickering predictions
-- Serves results through a React frontend and FastAPI backend
+- Applies temporal smoothing and per-track ID on video/stream input to prevent flickering predictions
+- Streams per-frame video processing progress to the browser over Server-Sent Events
+- Applies post-hoc logit calibration to suppress a known false-positive class on webcam captures
+- Serves results through a React frontend and a rate-limited FastAPI backend
 
 ---
 
@@ -23,7 +27,7 @@ Detects faces in images, videos, and live webcam streams, then classifies the em
 | Frontend | React + Vite |
 | Backend | FastAPI (Python) |
 | Face detection | YOLO11 |
-| Emotion classification | ResNet18 (baseline) → EfficientNet-B2 (fine-tuned) |
+| Emotion classification | ResNet18 (fine-tuned) with post-hoc logit calibration |
 | Inference modes | Mock / Local / External provider |
 | Containerization | Docker |
 | CI/CD | GitHub Actions |
@@ -45,7 +49,7 @@ YOLO face detector
 Face crop + padding + resize (224x224)
     │
     ▼
-Emotion classifier (EfficientNet-B2)
+Emotion classifier (ResNet18, fine-tuned)
     │  class probabilities
     ▼
 Temporal smoothing (video/stream only)
@@ -60,8 +64,8 @@ Annotated output + structured JSON response
 
 This project explicitly demonstrates fine-tuning, not just model consumption.
 
-- **Emotion classifier**: fine-tuned on RAF-DB and FER2013 datasets
-- **Face detector**: YOLO11 validated out of the box, fine-tuned on WiderFace if domain performance requires it
+- **Emotion classifier**: ResNet18 fine-tuned on RAF-DB and FER2013, with post-hoc per-class logit bias to correct production drift on neutral webcam faces
+- **Face detector**: YOLO11 validated out of the box, fine-tuned on WiderFace where domain performance required it
 - Training done in Kaggle and Google Colab notebooks (see `notebooks/`)
 - Baseline vs fine-tuned comparisons documented with metrics
 
@@ -141,12 +145,10 @@ emotion-vision/
 
 ## Deployment
 
-Infrastructure is defined in Terraform and deployed to GCP Cloud Run. CI/CD runs on GitHub Actions — every push triggers lint, tests, Docker build, and staging deployment. Production uses canary rollouts via Cloud Run traffic splitting.
-
-See [DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md) for the full architecture.
+Infrastructure is defined in Terraform (Artifact Registry, Cloud Run, GCS, Secret Manager) and deployed to GCP Cloud Run in `us-central1`. CI/CD runs on GitHub Actions — every push to `main` builds the backend Docker image, pushes it to Artifact Registry, and rolls a new Cloud Run revision. The frontend is built with Vite and deployed to Vercel. The API is CORS-restricted and rate-limited via slowapi at the application edge.
 
 ---
 
 ## Author
 
-**Chirag Dahiya** — [github.com/ChiragandAI](https://github.com/ChiragandAI)
+**Chirag Dahiya** — [GitHub](https://github.com/ChiragandAI) · [LinkedIn](https://www.linkedin.com/in/chiragdahiya)
