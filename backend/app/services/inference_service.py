@@ -91,7 +91,6 @@ class InferenceService:
                 if not ok:
                     break
 
-                frame = self._downscale(frame, max_side=1280)
                 results = self._predict_faces_for_frame(frame, filename, use_tracking=True)
                 annotated = self._annotate_frame(frame, results)
 
@@ -139,16 +138,7 @@ class InferenceService:
         image = cv2.imdecode(array, cv2.IMREAD_COLOR)
         if image is None:
             raise ValueError("Could not decode image bytes.")
-        return self._downscale(image, max_side=1280)
-
-    def _downscale(self, frame: np.ndarray, max_side: int) -> np.ndarray:
-        h, w = frame.shape[:2]
-        longest = max(h, w)
-        if longest <= max_side:
-            return frame
-        scale = max_side / longest
-        new_size = (int(round(w * scale)), int(round(h * scale)))
-        return cv2.resize(frame, new_size, interpolation=cv2.INTER_AREA)
+        return image
 
     def _mock_infer_image(self, frame: np.ndarray, filename: str) -> dict:
         return {

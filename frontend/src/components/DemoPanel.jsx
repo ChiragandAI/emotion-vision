@@ -328,14 +328,12 @@ export function DemoPanel() {
       setCameraMessage("Capturing frame");
     }
 
-    const maxSide = 960;
-    const scale = Math.min(1, maxSide / Math.max(video.videoWidth, video.videoHeight));
-    canvas.width = Math.round(video.videoWidth * scale);
-    canvas.height = Math.round(video.videoHeight * scale);
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
     const context = canvas.getContext("2d");
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.8));
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.95));
     if (!blob) {
       if (!silent) {
         setLoading(false);

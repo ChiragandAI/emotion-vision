@@ -609,8 +609,9 @@ body {
 .image-preview {
   display: block;
   width: 100%;
-  max-height: 320px;
-  object-fit: cover;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
 }
 
 .video-sample-card {
