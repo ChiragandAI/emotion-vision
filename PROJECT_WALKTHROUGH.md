@@ -393,6 +393,23 @@ Why it's not wired up: Cloud Armor charges ~$5/mo base + $0.75/rule + $0.75/M re
 
 **Interview line:** "Today I run app-level rate limiting via slowapi — in-process, per-instance. For a real production system I'd front Cloud Run with Cloud Armor for global rate limits, geo-blocking, OWASP rules, and IP reputation. slowapi catches scripted abuse from a single source; Cloud Armor catches distributed abuse and L7 attacks."
 
+**The mental model behind it — defense in depth / edge termination:**
+
+```
+Internet → [Edge / WAF tier]  → [App servers (Cloud Run)] → [DB, models]
+              Cloud Armor              slowapi
+              (Google-operated)        (your code)
+```
+
+Every request hits the edge tier first. The edge does cheap, fast checks: is this IP blocklisted, is it firing too fast, does the payload match an attack signature, is it from a banned country. Failed checks die at the edge — the origin never sees them. Only clean traffic is forwarded to the app.
+
+Why this layering is the standard:
+1. The app's job becomes business logic, not security. App code can assume "if I'm seeing this request, it already passed basic abuse checks."
+2. The edge tier is purpose-built and brutally optimized — it inspects millions of req/sec in C++ on hardware tuned for it. Your Python app inspecting requests is a side job.
+3. Blast radius is contained. Even if an attacker finds an app bug, they still have to get past the edge first.
+
+Same pattern shows up everywhere: Cloudflare in front of websites, AWS WAF + CloudFront, Nginx/Envoy as sidecars in front of Kubernetes microservices, API Gateway in front of Lambda. The buzzwords for this are **defense in depth**, **layered security**, **edge termination**, **WAF + origin**.
+
 ---
 
 ## 14. How to read this repo for maximum understanding
