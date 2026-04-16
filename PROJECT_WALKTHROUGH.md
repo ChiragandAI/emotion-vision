@@ -370,6 +370,31 @@ If tomorrow a teammate joins, they can clone the repo, run `terraform apply`, an
 
 ---
 
+## 13a. Guardrails: what's in place and what would come next
+
+**Currently enforced (in code + Terraform):**
+- `slowapi` rate limit per IP — 2 req/sec + 60 req/min global, 2/s + 30/min on `/infer/image`, 1/s + 5/min on `/infer/video`. Counters live in process memory per Cloud Run instance.
+- Server-side file size limits (8 MB image, 120 MB video) at the API boundary, not just in React.
+- Cloud Run request timeout: 120 s. Bounds how long any one request can hold a worker.
+- Cloud Run autoscaling: `max_instance_count = 10`. Hard ceiling on parallel cost burn.
+- Startup gate refuses `INFERENCE_MODE=mock` in `production`.
+- Cloud Monitoring alerts: uptime check on `/health`, 5xx rate >1%, p95 latency >800 ms.
+- GCP billing budget: monthly cap with email alerts at 50/90/100%.
+
+**What this stack does NOT have, and would be the next step in production — Cloud Armor:**
+
+Google Cloud Armor is a managed WAF that sits in front of Cloud Run. It would add:
+- True per-IP burst limits enforced *globally* across all Cloud Run instances (slowapi today is per-instance — an attacker spraying across 10 warm instances effectively gets 10× the per-IP budget).
+- Auto-ban policies: e.g. "5x 429 in 10 min from same IP → 15 min block at the edge."
+- Geographic blocking, OWASP rule sets (SQLi, XSS, path traversal), bot-score scoring.
+- IP reputation feeds — known-bad IPs blocked at the edge before they ever reach Cloud Run.
+
+Why it's not wired up: Cloud Armor charges ~$5/mo base + $0.75/rule + $0.75/M requests. For a portfolio demo with no real attack surface, slowapi + Cloud Run's max-10-instance cap is sufficient. For a real production service, Cloud Armor (or AWS WAF / Cloudflare) is the standard answer. Wiring it in would mean adding a serverless NEG + global HTTPS load balancer in front of Cloud Run, then attaching a Cloud Armor security policy to the LB backend.
+
+**Interview line:** "Today I run app-level rate limiting via slowapi — in-process, per-instance. For a real production system I'd front Cloud Run with Cloud Armor for global rate limits, geo-blocking, OWASP rules, and IP reputation. slowapi catches scripted abuse from a single source; Cloud Armor catches distributed abuse and L7 attacks."
+
+---
+
 ## 14. How to read this repo for maximum understanding
 
 Go in this order, with this doc open:

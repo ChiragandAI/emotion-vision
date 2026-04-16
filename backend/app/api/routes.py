@@ -34,7 +34,7 @@ def demo_info() -> DemoInfo:
 
 
 @router.post("/infer/image", response_model=ImageInferenceResponse)
-@limiter.limit("30/minute")
+@limiter.limit("2/second;30/minute")
 async def infer_image(request: Request, file: UploadFile = File(...)) -> ImageInferenceResponse:
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Expected an image upload.")
@@ -47,7 +47,7 @@ async def infer_image(request: Request, file: UploadFile = File(...)) -> ImageIn
 
 
 @router.post("/infer/video", response_model=VideoInferenceResponse)
-@limiter.limit("5/minute")
+@limiter.limit("1/second;5/minute")
 async def infer_video(request: Request, file: UploadFile = File(...)) -> VideoInferenceResponse:
     if not file.content_type or not file.content_type.startswith("video/"):
         raise HTTPException(status_code=400, detail="Expected a video upload.")
