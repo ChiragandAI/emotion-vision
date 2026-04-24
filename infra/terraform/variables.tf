@@ -31,6 +31,18 @@ variable "environment" {
   default     = "production"
 }
 
+variable "allow_unauthenticated" {
+  description = "Whether Cloud Run should allow public unauthenticated invocation."
+  type        = bool
+  default     = false
+}
+
+variable "enable_uptime_check" {
+  description = "Whether to create a public Cloud Monitoring uptime check for the backend."
+  type        = bool
+  default     = false
+}
+
 variable "alert_email" {
   description = "Email address to receive Cloud Monitoring alerts (uptime, error rate, latency)"
   type        = string

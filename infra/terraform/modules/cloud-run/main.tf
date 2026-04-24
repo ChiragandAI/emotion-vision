@@ -62,6 +62,7 @@ resource "google_cloud_run_v2_service" "backend" {
 }
 
 resource "google_cloud_run_v2_service_iam_member" "public_access" {
+  count    = var.allow_unauthenticated ? 1 : 0
   name     = google_cloud_run_v2_service.backend.name
   location = var.region
   role     = "roles/run.invoker"

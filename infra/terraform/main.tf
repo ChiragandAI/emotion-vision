@@ -46,6 +46,7 @@ module "cloud_run" {
   model_bucket_name      = module.gcs.bucket_name
   environment            = var.environment
   inference_mode_version = module.secret_manager.inference_mode_version
+  allow_unauthenticated  = var.allow_unauthenticated
 }
 
 module "monitoring" {
@@ -54,6 +55,7 @@ module "monitoring" {
   service_name = "emotion-vision-backend"
   service_host = replace(replace(module.cloud_run.service_url, "https://", ""), "/", "")
   alert_email  = var.alert_email
+  enable_uptime_check = var.enable_uptime_check
 }
 
 module "budget" {

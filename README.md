@@ -32,7 +32,7 @@ Detects faces in images, videos, and live webcam streams, then classifies the em
 | Containerization | Docker |
 | CI/CD | GitHub Actions |
 | Infrastructure | GCP Cloud Run + Terraform |
-| Experiment tracking | Weights & Biases |
+| Experiment tracking | Weights & Biases (optional, scaffolded) |
 | Frontend hosting | Vercel |
 
 ---

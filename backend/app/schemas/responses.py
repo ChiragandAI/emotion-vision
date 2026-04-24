@@ -49,3 +49,5 @@ class DemoInfo(BaseModel):
     provider: str
     prototype_ready: bool
     capabilities: list[str]
+
+    

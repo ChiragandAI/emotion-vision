@@ -188,11 +188,11 @@ body {
 
 .diagram-content {
   position: relative;
-  max-width: min(1040px, 96vw);
+  width: min(1280px, 96vw);
   max-height: 92vh;
   background: #ffffff;
   border-radius: 18px;
-  padding: 18px;
+  padding: 24px;
   box-shadow: 0 30px 80px rgba(15, 23, 42, 0.35);
   overflow: auto;
 }
@@ -840,30 +840,185 @@ body {
   }
 }
 
+/* ---------- Tablet (≤ 900px) ---------- */
+@media (max-width: 900px) {
+  .hero,
+  .page-single {
+    max-width: 100%;
+  }
+
+  .diagram-content {
+    width: 98vw;
+    padding: 12px;
+  }
+}
+
+/* ---------- Mobile (≤ 640px) ---------- */
 @media (max-width: 640px) {
   .page-grid {
     grid-template-columns: 1fr;
   }
 
+  .app-shell {
+    padding: 16px 10px 36px;
+  }
+
   .hero {
-    padding: 22px;
+    padding: 18px 16px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  .hero h1 {
+    font-size: clamp(26px, 8vw, 40px);
+  }
+
+  .hero-signature {
+    font-size: 16px;
+  }
+
+  .hero-subtitle {
+    font-size: 14px;
+  }
+
+  .hero-socials {
+    top: 14px;
+    right: 14px;
+    gap: 6px;
+  }
+
+  .social-link {
+    width: 32px;
+    height: 32px;
+  }
+
+  .social-link svg {
+    width: 18px;
+    height: 18px;
   }
 
   .panel {
-    padding: 18px;
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .panel h2 {
+    font-size: 20px;
   }
 
   .panel-block {
-    padding: 16px;
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .mode-switch {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .chip-button {
+    padding: 8px 12px;
+    font-size: 13px;
   }
 
   .camera-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .action-button {
+    padding: 10px 12px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .upload-box {
+    padding: 14px;
+  }
+
+  .submit-button {
+    min-height: 46px;
+  }
+
+  .image-preview-wrap {
+    border-radius: 16px;
+  }
+
+  .image-preview,
+  .camera-preview {
+    max-height: min(60vh, 400px);
+  }
+
+  .annotated-preview {
+    max-height: min(60vh, 400px);
+  }
+
+  .video-output-header {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px 0;
+  }
+
+  .result-summary {
+    padding: 12px;
+  }
+
+  .metric-value {
+    font-size: 32px;
+  }
+
+  .result-card {
+    padding: 12px;
+    border-radius: 14px;
   }
 
   .menu-toggle {
-    top: 16px;
-    left: 16px;
+    top: 12px;
+    left: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .diagram-content {
+    width: 100vw;
+    max-height: 80vh;
+    border-radius: 12px;
+    padding: 8px;
+  }
+
+  .diagram-modal {
+    padding: 8px;
+  }
+
+  .inference-status {
+    gap: 8px;
+  }
+
+  .inference-progress {
+    min-width: 120px;
+    flex: 1 1 120px;
+  }
+}
+
+/* ---------- Very small phones (≤ 380px) ---------- */
+@media (max-width: 380px) {
+  .hero h1 {
+    font-size: 24px;
+  }
+
+  .hero-signature {
+    font-size: 14px;
+  }
+
+  .camera-row {
+    grid-template-columns: 1fr;
+  }
+
+  .chip-button {
+    padding: 6px 10px;
+    font-size: 12px;
   }
 }
 

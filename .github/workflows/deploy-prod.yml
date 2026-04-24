@@ -81,7 +81,7 @@ jobs:
 
   shift-25-percent:
     name: Shift 25% traffic to canary
-    needs: shift-5-percent
+    needs: [deploy-canary, shift-5-percent]
     runs-on: ubuntu-latest
     environment: production-canary-25
 
@@ -105,7 +105,7 @@ jobs:
 
   shift-100-percent:
     name: Promote canary to 100% traffic
-    needs: shift-25-percent
+    needs: [deploy-canary, shift-25-percent]
     runs-on: ubuntu-latest
     environment: production-full
 

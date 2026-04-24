@@ -1,5 +1,5 @@
 output "cloud_run_url" {
-  description = "Public URL of the deployed Cloud Run backend service"
+  description = "URL of the deployed Cloud Run backend service"
   value       = module.cloud_run.service_url
 }
 

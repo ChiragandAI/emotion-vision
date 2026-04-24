@@ -27,3 +27,9 @@ variable "inference_mode_version" {
   description = "Pinned secret version resource name for INFERENCE_MODE"
   type        = string
 }
+
+variable "allow_unauthenticated" {
+  description = "Whether to allow unauthenticated public invocation of the Cloud Run service"
+  type        = bool
+  default     = false
+}

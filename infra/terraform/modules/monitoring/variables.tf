@@ -30,3 +30,9 @@ variable "error_rate_threshold" {
   type        = number
   default     = 0.01
 }
+
+variable "enable_uptime_check" {
+  description = "Whether to create a public uptime check against the service host."
+  type        = bool
+  default     = false
+}

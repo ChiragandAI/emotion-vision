@@ -7,6 +7,7 @@ resource "google_monitoring_notification_channel" "email" {
 }
 
 resource "google_monitoring_uptime_check_config" "health" {
+  count        = var.enable_uptime_check ? 1 : 0
   display_name = "emotion-vision-backend /health"
   timeout      = "10s"
   period       = "60s"
@@ -28,13 +29,14 @@ resource "google_monitoring_uptime_check_config" "health" {
 }
 
 resource "google_monitoring_alert_policy" "uptime_failure" {
+  count        = var.enable_uptime_check ? 1 : 0
   display_name = "Cloud Run /health uptime failing"
   combiner     = "OR"
 
   conditions {
     display_name = "Uptime check failed"
     condition_threshold {
-      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.labels.check_id=\"${google_monitoring_uptime_check_config.health.uptime_check_id}\""
+      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.labels.check_id=\"${google_monitoring_uptime_check_config.health[0].uptime_check_id}\""
       duration        = "300s"
       comparison      = "COMPARISON_LT"
       threshold_value = 1
